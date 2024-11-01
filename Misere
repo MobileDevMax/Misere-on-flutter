@@ -1,0 +1,117 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(MisereGame());
+}
+
+class MisereGame extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: GameBoard(),
+    );
+  }
+}
+
+class GameBoard extends StatefulWidget {
+  @override
+  _GameBoardState createState() => _GameBoardState();
+}
+
+class _GameBoardState extends State<GameBoard> {
+  List<String> _board = List.filled(9, '');
+  bool _isXNext = true;
+
+  void _handleTap(int index) {
+    if (_board[index].isNotEmpty) return;
+
+    setState(() {
+      _board[index] = _isXNext ? 'X' : 'O';
+      _isXNext = !_isXNext;
+    });
+
+    if (_checkWinner()) {
+      String winner = _isXNext ? 'X' : 'O';
+      _showWinDialog(winner);
+    }
+  }
+
+  bool _checkWinner() {
+    const List<List<int>> winPatterns = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+
+    for (var pattern in winPatterns) {
+      if (_board[pattern[0]] == _board[pattern[1]] && 
+          _board[pattern[1]] == _board[pattern[2]] &&
+          _board[pattern[0]].isNotEmpty) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _showWinDialog(String winner) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Game over'),
+          content: Text('Won: $winner'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _resetGame();
+              },
+              child: Text('Back to the game'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _resetGame() {
+    setState(() {
+      _board = List.filled(9, '');
+      _isXNext = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Misere'),
+      ),
+      body: GridView.builder(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+        itemCount: 9,
+        itemBuilder: (context, index) {
+          return GestureDetector(
+            onTap: () => _handleTap(index),
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(),
+              ),
+              child: Center(
+                child: Text(
+                  _board[index],
+                  style: TextStyle(fontSize: 125),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
